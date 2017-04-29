@@ -8,6 +8,25 @@ var accountSid = 'AC68f869d8679560a1cb6765cce7323c6e'
 var authToken = '3168f4089f327e08a72b5858a2ed5b93'
 var client = twilio(accountSid, authToken)
 
+var copy = {
+  intro:{
+    "en":'The DCFS would like to confirm your visitation with. {kid}. {time}. The location is. {location}',
+    "es":'El DCFS desea confirmar su visitacion con. {kid}. {time}. El lugar es. {location}'
+  },
+  toconfirm:{
+    "en":'To confirm, press 1. If you cant make it, press 2.',
+    "es":'Para confirmar, oprima 1. Si no puede hacerla, oprima 2.'
+  },
+  confirmed:{
+    "en":'The visitation is now confirmed! Please let the social worker know if the plans change. Thank you!',
+    "es":'La visitacion está confirmada! Por favor, informe al trabajador social si los planes cambian. Gracias!'
+  },
+  cancelled:{
+    "en":'The visitation is now cancelled, the social worker will contact you to reschedule at a different time. Thank you!',
+    "es":'La visita está cancelada, el trabajador social se pondrá en contacto con usted para reprogramar en otro momento. ¡Gracias!'
+  }
+}
+
 //Replace this function with code to retrieve the data from the database given the visitationId
 function getData(visitationId) {
   return Visitation.getResponse(visitationId)
@@ -32,7 +51,7 @@ function startCall(req, res) {
     //let role = visitation[req.params.role]
     const parent = visitation.parent
     return Promise.try(() => client.calls.create({
-      url: 'http://ec2-34-208-196-65.us-west-2.compute.amazonaws.com:4040/api/call/parent/' + req.params.visitationId,
+      url: 'http://ec2-34-208-196-65.us-west-2.compute.amazonaws.com:4040/api/call/language/parent/' + req.params.visitationId,
       to: parent.mobileNumber,
       from: "+13233065929"
     })
@@ -47,16 +66,44 @@ function startCall(req, res) {
   })
 }
 
+function selectLanguage(req, res) {
+  var data = getData(req.params.visitationId);
 
-function callParent(req, res) {
+  var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
+  xml+='<Gather action="/api/call/setlanguage/'+req.params.role+'/'+req.params.visitationId+'" method="GET" timeout="30" finishOnKey="12" numDigits="1">';
+  xml+= '<Say voice="woman">Hello! This call is from the DCFS</Say>';
+  xml+='<Say voice="man">For English, press 1.</Say>';
+  xml+='<Say voice="man" language="es">Para español, oprima el 2.</Say>';
+  xml+='</Gather>';
+  //xml+='<Redirect method="GET"></Redirect>';//Keep bothering until they select an option
+  xml+='</Response>';
+  res.header('Content-Type','text/xml').send(xml);
+}
+
+function setLanguage(req, res) {
+  if(req.query.Digits=='1'){
+    var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
+    xml+='<Redirect method="POST">/api/call/en/'+req.params.role+'/'+req.params.visitationId+'</Redirect>';
+    xml+='</Response>';
+    res.header('Content-Type','text/xml').send(xml);
+  }else{
+    var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
+    xml+='<Redirect method="POST">/api/call/es/'+req.params.role+'/'+req.params.visitationId+'</Redirect>';
+    xml+='</Response>';
+    res.header('Content-Type','text/xml').send(xml);
+  }
+}
+
+
+function callPerson(req, res) {
   //console.log('$$$$$$$$$$ callParent $$$$$$$$$$$$$$$$$$$')
   getData(req.params.visitationId)
   .then((visitation) => {
     var parsedDateTime = moment(visitation.datetime)
     var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
-    xml+='<Gather action="http://ec2-34-208-196-65.us-west-2.compute.amazonaws.com:4040/api/call/confirm/parent/'+req.params.visitationId+'" method="POST" timeout="30" finishOnKey="12" numDigits="1">';
-    xml+= '<Say voice="woman">Hello! This call is from the Reunite Scheduling System to confirm your visitation with. '+ visitation.child.name + '.' + parsedDateTime.format('LLL') + '. The location is. ' + visitation.location + '</Say>';
-    xml+='<Say voice="man">To confirm, press 1. If you cant make it, press 2.</Say>';
+    xml+='<Gather action="http://ec2-34-208-196-65.us-west-2.compute.amazonaws.com:4040/api/call/'+req.params.language+'/confirm/' +req.params.role+'/'+req.params.visitationId+'" method="POST" timeout="30" finishOnKey="12" numDigits="1">';
+    xml+= '<Say voice="woman" language="'+req.params.language+'">'+copy.intro[req.params.language].replace("{kid}",visitation.child.name).replace("{location}",visitation.location).replace("{time}",parsedDateTime.format('LLL'))+'</Say>';
+    xml+='<Say voice="man" language="'+req.params.language+'">'+copy.toconfirm[req.params.language]+'</Say>';
     xml+='</Gather>';
     //xml+='<Redirect method="GET"></Redirect>';//Keep bothering until they select an option
     xml+='</Response>';
@@ -65,18 +112,6 @@ function callParent(req, res) {
 }
 
 
-function callCaregiver(req, res) {
-  var data = getData(req.params.visitationId);
-
-  var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
-  xml+='<Gather action="/call/confirm/caregiver/'+req.params.visitationId+'" method="GET" timeout="30" finishOnKey="#" numDigits="1">';
-  xml+= '<Say voice="woman">Hello! This call is from the Amazing Foster Care Scheduling System to confirm the visitation for '+data.kid.name+', with the parent, '+data.parent.name+'. Tomorrow, April 30th, 4 PM. The location is. '+data.location+'</Say>';
-  xml+='<Say voice="man">To confirm, press 1. If '+data.kid.name+' cant make it, press 2.</Say>';
-  xml+='</Gather>';
-  //xml+='<Redirect method="GET"></Redirect>';//Keep bothering until they select an option
-  xml+='</Response>';
-  res.header('Content-Type','text/xml').send(xml);
-}
 
 
 function confirm(req, res) {
@@ -84,12 +119,12 @@ function confirm(req, res) {
 
   if(req.body.Digits == '1'){
     var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
-    xml+='<Say voice="man">The visitation is now confirmed! Please let the social worker know if the plans change. Thank you!</Say>';
+    xml+='<Say voice="man" language="'+req.params.language+'">'+copy.confirmed[req.params.language]+'</Say>';
     xml+='</Response>';
     res.header('Content-Type','text/xml').send(xml);
   }else{
     var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
-    xml+='<Say voice="man">The visitation is now cancelled, the social worker will contact you to reschedule at a different time. Thank you!</Say>';
+    xml+='<Say voice="man" language="'+req.params.language+'">'+copy.cancelled[req.params.language]+'</Say>';
     xml+='</Response>';
     res.header('Content-Type','text/xml').send(xml);
   }
@@ -97,5 +132,5 @@ function confirm(req, res) {
 
 
 export default {
-  startCall,callParent,callCaregiver,confirm
+  startCall,selectLanguage,setLanguage,callPerson,confirm
 }

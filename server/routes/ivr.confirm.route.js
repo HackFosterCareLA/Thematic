@@ -6,14 +6,19 @@ const router = express.Router()
 router.route('/:role/:visitationId')
   .get(ivrConfirmController.startCall)
 
-router.route('/parent/:visitationId')
-  .post(ivrConfirmController.callParent);
+router.route('/language/:role/:visitationId')
+  .post(ivrConfirmController.selectLanguage)
 
-router.route('/caregiver/:visitationId')
-  .post(ivrConfirmController.callCaregiver);
+router.route('/setlanguage/:role/:visitationId')
+  .get(ivrConfirmController.setLanguage)
 
-router.route('/confirm/:role/:visitationId')
+router.route('/:language/:role/:visitationId')
+  .post(ivrConfirmController.callPerson);
+
+
+router.route('/:language/confirm/:role/:visitationId')
   .post(ivrConfirmController.confirm);
 
 
 export default router
+
