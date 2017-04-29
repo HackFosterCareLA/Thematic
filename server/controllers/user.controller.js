@@ -78,4 +78,9 @@ function remove(req, res, next) {
     .catch(e => next(e));
 }
 
-export default { load, get, create, update, list, remove };
+function clear(req, res, next) {
+  User.clear()
+  return res.json('Cleared')
+}
+
+export default { load, get, create, update, list, remove, clear};

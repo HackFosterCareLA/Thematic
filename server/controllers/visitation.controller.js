@@ -33,9 +33,11 @@ function getResponse(req, res) {
  * @property {string} req.body.mobileNumber - The mobileNumber of user.
  * @returns {User}
  */
+
 function create(req, res, next) {
   const visitation = new Visitation({
     datetime: req.body.datetime,
+    caseNumber: req.body.caseNumber,
     location: req.body.location,
     isWeekly: req.body.isWeekly,
     parentId: req.body.parentId,
@@ -56,7 +58,6 @@ function create(req, res, next) {
  * @returns {User}
  */
 function update(req, res, next) {
-  //console.log('visition: ' + util.inspect(req.visitation))
   Visitation.get(req.params.visitationId)
     .then((visitation) => {
       visitation.datetime = req.body.datetime
@@ -81,12 +82,17 @@ function update(req, res, next) {
  * @property {number} req.query.limit - Limit number of users to be returned.
  * @returns {User[]}
  */
-// function list(req, res, next) {
-//   const { limit = 50, skip = 0 } = req.query;
-//   User.list({ limit, skip })
-//     .then(users => res.json(users))
-//     .catch(e => next(e));
-// }
+function list(req, res, next) {
+  const { limit = 50, skip = 0 } = req.query;
+  Visitation.list({ limit, skip })
+    .then(visitations => res.json(visitations))
+    .catch(e => next(e));
+}
+
+function clear(req, res, next) {
+  Visitation.clear()
+  return res.json('cleared')
+}
 
 /**
  * Delete user.
@@ -104,6 +110,7 @@ export default {
   get,
   create,
   update,
-  getResponse
-  //list, remove
+  getResponse,
+  list,
+  clear
 }

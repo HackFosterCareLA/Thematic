@@ -67,6 +67,12 @@ UserSchema.statics = {
       .skip(+skip)
       .limit(+limit)
       .exec();
+  },
+
+  clear() {
+    this.remove({}, (stuff) => {
+      console.log('Cleared')
+    })
   }
 };
 

@@ -2,6 +2,7 @@ import express from 'express'
 import userRoutes from './user.route'
 import authRoutes from './auth.route'
 import visitationRoutes from './visitation.route'
+import ivrConfirmRoutes from './ivr.confirm.route'
 
 const router = express.Router() // eslint-disable-line new-cap
 
@@ -17,5 +18,7 @@ router.use('/users', userRoutes)
 router.use('/auth', authRoutes)
 
 router.use('/visitations', visitationRoutes)
+
+router.use('/call', ivrConfirmRoutes)
 
 export default router
