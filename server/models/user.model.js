@@ -19,10 +19,6 @@ const UserSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
 });
 
@@ -55,8 +51,7 @@ UserSchema.statics = {
         if (user) {
           return user;
         }
-        const err = new APIError('No such user exists!', httpStatus.NOT_FOUND);
-        return Promise.reject(err);
+        return null
       });
   },
 

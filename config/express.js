@@ -13,6 +13,7 @@ import winstonInstance from './winston';
 import routes from '../server/routes/index.route';
 import config from './config';
 import APIError from '../server/helpers/APIError';
+import util from 'util'
 
 const app = express();
 
@@ -29,7 +30,7 @@ app.use(compress());
 app.use(methodOverride());
 
 // secure apps by setting various HTTP headers
-app.use(helmet());
+//app.use(helmet());
 
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors());

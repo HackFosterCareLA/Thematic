@@ -1,5 +1,5 @@
 import express from 'express'
-//import validate from 'express-validation';
+import validate from 'express-validation';
 //import paramValidation from '../../config/param-validation';
 import visitationCtrl from '../controllers/visitation.controller'
 
@@ -12,17 +12,16 @@ router.route('/')
   /** POST /api/users - Create new user */
   .post(visitationCtrl.create)
 
-//router.route('/:visitationId')
-  /** GET /api/users/:userId - Get user */
-  //.get(visitationCtrl.get)
-
   /** PUT /api/users/:userId - Update user */
-  //.put(visitationCtrl.update)
+router.route('/:visitationId')
+  .put(visitationCtrl.update)
+
+  .get(visitationCtrl.getResponse)
 
   /** DELETE /api/users/:userId - Delete user */
   //.delete(visitationCtrl.remove)
 
 /** Load user when API with userId route parameter is hit */
-//router.param('userId', userCtrl.load);
+//router.param('validationId', visitationCtrl.load);
 
 export default router
