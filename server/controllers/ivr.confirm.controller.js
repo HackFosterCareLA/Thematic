@@ -10,8 +10,8 @@ var client = twilio(accountSid, authToken)
 
 var copy = {
   intro:{
-    "en":'The DCFS would like to confirm your visitation with. {kid}. {time}. The location is. {location}',
-    "es":'El DCFS desea confirmar su visitacion con. {kid}. {time}. El lugar es. {location}'
+    "en":'Reunite would like to confirm your visitation with. {kid}. {time}. The location is. {location}',
+    "es":'Reunite desea confirmar su visitacion con. {kid}. {time}. El lugar es. {location}'
   },
   toconfirm:{
     "en":'To confirm, press 1. If you cant make it, press 2.',
@@ -71,7 +71,7 @@ function selectLanguage(req, res) {
 
   var xml = '<?xml version="1.0" encoding="UTF-8"?><Response>';
   xml+='<Gather action="/api/call/setlanguage/'+req.params.role+'/'+req.params.visitationId+'" method="GET" timeout="30" finishOnKey="12" numDigits="1">';
-  xml+= '<Say voice="woman">Hello! This call is from the DCFS</Say>';
+  xml+= '<Say voice="woman">Hello! This call is from Reunite</Say>';
   xml+='<Say voice="man">For English, press 1.</Say>';
   xml+='<Say voice="man" language="es">Para español, oprima el 2.</Say>';
   xml+='</Gather>';
